@@ -35,7 +35,9 @@ def text_to_dict(textfile):
     f.close()
     return titles
 
-def email(sender_email, receiver_email, message, password):
+def email(receiver_email, message):
+    sender_email = config.email
+    password = config.pw
     port = 465
     smtp_server = "smtp.gmail.com"
     context = ssl.create_default_context()
@@ -43,21 +45,22 @@ def email(sender_email, receiver_email, message, password):
         server.login(sender_email, password)
         server.sendmail(sender_email, receiver_email, message)
 
-def run_bot(r, sr, pw, se, re):
-    for post in r.subreddit(sr).new(limit = 25):
+def run_bot(r, sr, re):
+    for post in r.subreddit(sr).new(limit = 1):
         if post.title not in text_to_dict("titles.txt"):
             write_title(post.title)
-            message = "New post to " + sr + ":" + post.title
-            email(se, re, pw, message)
+            message = """\
+            New post
+
+            SUBREDDIT: r/""" + sr + "\nPOST TITLE: " + post.title + "\nURL: " + "https://www.reddit.com" + post.permalink
+            email(re, message)
 
 def main():
     r = bot_login()
     sr = input("Type in the subreddit you want to track:\n")
-    se = input("Type sender email:\n")
     re = input("Type receiver email:\n")
-    pw = input("Type your password for email that you want to receive new notifications for:\n")
     while(1):
-        run_bot(r, sr, pw, se, re)
+        run_bot(r, sr, re)
 
 if __name__ == "__main__":
     main()
